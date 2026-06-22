@@ -20,11 +20,11 @@ import socket
 import machine
 
 # ===== 設定 (自分の値に変更) =========================================
-WIFI_SSID = "YOUR_SSID"
-WIFI_PASS = "YOUR_PASSWORD"
+WIFI_SSID = "SANTA_2F"
+WIFI_PASS = "s8nidedxcaid7"
 
 # images フォルダまでの raw ベースURL (末尾スラッシュ無し)
-GITHUB_RAW_BASE = "https://raw.githubusercontent.com/USER/REPO/main/images"
+GITHUB_RAW_BASE = "https://github.com/shoji4638/DigitalSignage.git/main/images"
 MANIFEST = "manifest.txt"     # ベースURL直下に置くファイル名一覧
 IMAGE_DIR = "/images"
 # =====================================================================
