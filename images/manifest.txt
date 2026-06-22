@@ -1,0 +1,9 @@
+# Pico signage 表示ファイル一覧 (1行に1ファイル, #始まりはコメント)
+sample_coffee.raw
+sample_railfes.raw
+sample_welcome.raw
+sample_beer.raw
+sample_onsen.raw
+sample_ramen.raw
+sample_sale.raw
+sample_spring.raw
