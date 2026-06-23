@@ -17,6 +17,16 @@
             "path": "images",
             "envManager": "ms-python.python:venv",
             "packageManager": "ms-python.python:pip"
+        },
+        {
+            "path": "images/landscape",
+            "envManager": "ms-python.python:venv",
+            "packageManager": "ms-python.python:pip"
+        },
+        {
+            "path": "images/portrait",
+            "envManager": "ms-python.python:venv",
+            "packageManager": "ms-python.python:pip"
         }
     ],
     "micropico.syncFileTypes": ["py","txt","log","json","xml","html","js","css","mpy","raw"]

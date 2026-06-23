@@ -5,4 +5,11 @@ de_test06.raw
 land_beer.raw
 de_test07.raw
 land_railfes.raw
+de_test09.raw
 land_sale.raw
+de_test10.raw
+de_test11.raw
+de_test12.raw
+de_test13.raw
+de_test16.raw
+de_test17.raw

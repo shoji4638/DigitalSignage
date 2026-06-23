@@ -32,6 +32,11 @@ def ctext(cv, cx, y, s, c):
     cv.text(s, cx - len(s) * 4, y, c)   # 8x8等幅前提で中央寄せ
 
 
+def _n(v):
+    """数値を文字列化。未取得(None)は '--'。"""
+    return "--" if v is None else "%d" % v
+
+
 # ---- 7セグ大型数字 -------------------------------------------------
 _SEG = {  # a b c d e f g
     "0": (1,1,1,1,1,1,0), "1": (0,1,1,0,0,0,0), "2": (1,1,0,1,1,0,1),
@@ -51,13 +56,17 @@ def _seg7(cv, x, y, w, h, t, segs, c):
     if cc: cv.fill_rect(x+w-t, y+h//2, t, h//2 - t, c)
 
 def draw_bignum(cv, x, y, s, h, c, deg=False):
-    """7セグで s を描く。h=数字高さ。末尾に度記号(deg)を付けられる。戻り=右端x。"""
+    """7セグで s を描く。h=数字高さ。':' '.' '-' 対応。末尾に度記号(deg)も可。戻り=右端x。"""
     w = int(h * 0.56)
     t = max(2, h // 8)
     cx = x
     for ch in s:
         if ch == ".":
             cv.fill_rect(cx, y + h - t, t, t, c); cx += t + 3
+        elif ch == ":":
+            cv.fill_rect(cx, y + h // 3 - t // 2, t, t, c)
+            cv.fill_rect(cx, y + 2 * h // 3 - t // 2, t, t, c)
+            cx += t + 5
         elif ch in _SEG:
             _seg7(cv, cx, y, w, h, t, _SEG[ch], c); cx += w + max(3, t)
         else:
@@ -66,6 +75,23 @@ def draw_bignum(cv, x, y, s, h, c, deg=False):
         r = max(3, h // 10)
         cv.ellipse(cx + r + 1, y + r + 1, r, r, c)   # 度記号(輪郭)
         cx += 2 * r + 4
+    return cx
+
+
+def bignum_width(s, h, deg=False):
+    """draw_bignum の描画幅(px)。中央寄せ計算用。"""
+    w = int(h * 0.56)
+    t = max(2, h // 8)
+    cx = 0
+    for ch in s:
+        if ch == ".":
+            cx += t + 3
+        elif ch == ":":
+            cx += t + 5
+        else:
+            cx += w + max(3, t)
+    if deg:
+        cx += 2 * max(3, h // 10) + 4
     return cx
 
 
@@ -124,7 +150,7 @@ def render_static(cv, P, d, W, H, ticker_h):
     draw_icon(cv, W // 2, 70, wmo_kind(d.get("code", 3)), P)
 
     # 大型気温
-    temp = "%d" % d.get("temp", 0)
+    temp = _n(d.get("temp"))
     th = 56
     tw = int(th * 0.56)
     total = len(temp) * (tw + 4) + 2 * max(3, th // 10) + 4
@@ -134,7 +160,7 @@ def render_static(cv, P, d, W, H, ticker_h):
     ctext(cv, W // 2, 176, wmo_label(d.get("code", 3)), P["ACCENT"])
 
     # 本日 Hi/Lo
-    ctext(cv, W // 2, 196, "H%d   L%d" % (d.get("hi", 0), d.get("lo", 0)), P["FG"])
+    ctext(cv, W // 2, 196, "H%s   L%s" % (_n(d.get("hi")), _n(d.get("lo"))), P["FG"])
 
     if d.get("date"):
         ctext(cv, W // 2, 208, d["date"], P["DIM"])
@@ -144,8 +170,8 @@ def render_static(cv, P, d, W, H, ticker_h):
     # 明日
     ctext(cv, W // 2, 228, "TOMORROW", P["DIM"])
     draw_icon(cv, 38, 262, wmo_kind(d.get("tmr_code", 3)), P, 0.8)
-    cv.text("H%d" % d.get("tmr_hi", 0), 86, 250, P["FG"])
-    cv.text("L%d" % d.get("tmr_lo", 0), 86, 266, P["DIM"])
+    cv.text("H%s" % _n(d.get("tmr_hi")), 86, 250, P["FG"])
+    cv.text("L%s" % _n(d.get("tmr_lo")), 86, 266, P["DIM"])
 
     # ティッカー背景
     ty = H - ticker_h
@@ -219,11 +245,11 @@ def render_static_land(cv, P, d, W, H, ticker_h):
 
     # 左: アイコン + 大型気温
     draw_icon(cv, 54, 78, wmo_kind(d.get("code", 3)), P)
-    temp = "%d" % d.get("temp", 0)
+    temp = _n(d.get("temp"))
     th = 46
     draw_bignum(cv, 104, 50, temp, th, P["FG"], deg=True)
     ctext(cv, 112, 110, wmo_label(d.get("code", 3)), P["ACCENT"])
-    ctext(cv, 112, 130, "H%d   L%d" % (d.get("hi", 0), d.get("lo", 0)), P["FG"])
+    ctext(cv, 112, 130, "H%s   L%s" % (_n(d.get("hi")), _n(d.get("lo"))), P["FG"])
 
     # 縦の区切り
     ty = H - ticker_h
@@ -232,8 +258,8 @@ def render_static_land(cv, P, d, W, H, ticker_h):
     # 右: 明日 + 日付
     ctext(cv, 264, 30, "TOMORROW", P["DIM"])
     draw_icon(cv, 242, 80, wmo_kind(d.get("tmr_code", 3)), P, 0.8)
-    cv.text("H%d" % d.get("tmr_hi", 0), 282, 70, P["FG"])
-    cv.text("L%d" % d.get("tmr_lo", 0), 282, 88, P["DIM"])
+    cv.text("H%s" % _n(d.get("tmr_hi")), 282, 70, P["FG"])
+    cv.text("L%s" % _n(d.get("tmr_lo")), 282, 88, P["DIM"])
     if d.get("date"):
         ctext(cv, 264, 124, d["date"], P["DIM"])
 
@@ -247,3 +273,104 @@ def render_board(cv, P, d, W, H, ticker_h, landscape=False):
         render_static_land(cv, P, d, W, H, ticker_h)
     else:
         render_static(cv, P, d, W, H, ticker_h)
+
+
+# ---- 日時画面 ------------------------------------------------------
+import math as _math
+
+_WD3 = ("MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN")
+_MON3 = ("JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+         "JUL", "AUG", "SEP", "OCT", "NOV", "DEC")
+
+
+def _thick_line(cv, x0, y0, x1, y1, c, th):
+    dx = x1 - x0
+    dy = y1 - y0
+    L = _math.sqrt(dx * dx + dy * dy) or 1
+    px = -dy / L
+    py = dx / L
+    for k in range(-th, th + 1):
+        cv.line(int(x0 + px * k), int(y0 + py * k),
+                int(x1 + px * k), int(y1 + py * k), c)
+
+
+def _datetime_header(cv, P, label, W, ls):
+    hh = 20 if ls else 24
+    ty = 6 if ls else 8
+    cv.fill_rect(0, 0, W, hh, P["PANEL"])
+    cv.text(label, 6, ty, P["FG"])
+    cv.text("JST", W - 3 * 8 - 6, ty, P["ACCENT"])
+    cv.hline(0, hh, W, P["LINE"])
+    return hh
+
+
+def render_digital(cv, P, t, label, W, H, ls):
+    """年月日 + 大型デジタル時計。 t=time.localtime tuple。"""
+    cv.fill(P["BG"])
+    _datetime_header(cv, P, label, W, ls)
+
+    ymd = "%04d-%02d-%02d" % (t[0], t[1], t[2])
+    wd = _WD3[t[6]]
+    hm = "%02d:%02d" % (t[3], t[4])
+    ss = "%02d" % t[5]
+
+    if ls:
+        ctext(cv, W // 2, 36, ymd + "  " + wd, P["FG"])
+        bigh, smh = 64, 30
+        gap = 10
+        total = bignum_width(hm, bigh) + gap + bignum_width(ss, smh)
+        x0 = (W - total) // 2
+        ay = 80
+        xend = draw_bignum(cv, x0, ay, hm, bigh, P["FG"])
+        draw_bignum(cv, xend + gap, ay + bigh - smh, ss, smh, P["ACCENT"])
+    else:
+        ctext(cv, W // 2, 60, ymd, P["FG"])
+        ctext(cv, W // 2, 78, wd, P["DIM"])
+        bigh, smh = 46, 22
+        gap = 8
+        total = bignum_width(hm, bigh) + gap + bignum_width(ss, smh)
+        x0 = (W - total) // 2
+        ay = 150
+        xend = draw_bignum(cv, x0, ay, hm, bigh, P["FG"])
+        draw_bignum(cv, xend + gap, ay + bigh - smh, ss, smh, P["ACCENT"])
+
+
+def render_analog(cv, P, t, label, W, H, ls):
+    """アナログ時計 + 日付。"""
+    cv.fill(P["BG"])
+    hh = _datetime_header(cv, P, label, W, ls)
+
+    cx = W // 2
+    cy = (hh + H) // 2 - (6 if ls else 12)
+    r = (min(W, H - hh) // 2) - (10 if ls else 8)
+
+    # 文字盤
+    cv.ellipse(cx, cy, r, r, P["LINE"])
+    cv.ellipse(cx, cy, r - 1, r - 1, P["DIM"])
+    for i in range(12):
+        a = _math.radians(i * 30)
+        sx, sy = _math.sin(a), -_math.cos(a)
+        inner = r - (10 if i % 3 == 0 else 6)
+        col = P["ACCENT"] if i % 3 == 0 else P["DIM"]
+        cv.line(int(cx + sx * inner), int(cy + sy * inner),
+                int(cx + sx * (r - 2)), int(cy + sy * (r - 2)), col)
+
+    h, m, s = t[3] % 12, t[4], t[5]
+    a_h = _math.radians((h + m / 60.0) * 30)
+    a_m = _math.radians(m * 6)
+    a_s = _math.radians(s * 6)
+
+    def tip(ang, length):
+        return cx + _math.sin(ang) * length, cy - _math.cos(ang) * length
+
+    hx, hy = tip(a_h, r * 0.52)
+    mx, my = tip(a_m, r * 0.78)
+    sx, sy = tip(a_s, r * 0.86)
+    _thick_line(cv, cx, cy, hx, hy, P["FG"], 2)
+    _thick_line(cv, cx, cy, mx, my, P["ACCENT"], 1)
+    cv.line(cx, cy, int(sx), int(sy), P["TBG"])     # 秒針(赤)
+    cv.ellipse(cx, cy, 3, 3, P["FG"], True)         # 中心ハブ
+
+    # 日付
+    ymd = "%04d-%02d-%02d %s" % (t[0], t[1], t[2], _WD3[t[6]])
+    ctext(cv, W // 2, H - (16 if ls else 22), ymd, P["DIM"])

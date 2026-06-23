@@ -1,4 +1,5 @@
 # Pico signage 表示ファイル一覧 (1行に1ファイル, #始まりはコメント)
+de_test08.raw
 de_test02.raw
 de_test01.raw
 sample_coffee.raw
@@ -6,8 +7,14 @@ de_test04.raw
 sample_railfes.raw
 de_test05.raw
 sample_welcome.raw
+de_test10.raw
 sample_beer.raw
+de_test11.raw
 sample_onsen.raw
+de_test12.raw
 sample_ramen.raw
+de_test13.raw
 sample_sale.raw
+de_test16.raw
 sample_spring.raw
+de_test17.raw
