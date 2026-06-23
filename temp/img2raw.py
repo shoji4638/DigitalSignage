@@ -53,9 +53,16 @@ def main():
     ap.add_argument("-o", "--out", default="images", help="出力ディレクトリ")
     ap.add_argument("--width", type=int, default=172)
     ap.add_argument("--height", type=int, default=320)
+    ap.add_argument("--orient", choices=["portrait", "landscape"], default=None,
+                    help="指定すると寸法を自動設定 (portrait=172x320 / landscape=320x172)")
     ap.add_argument("--fit", choices=["cover", "contain"], default="cover")
     ap.add_argument("--bg", default="0,0,0")
     args = ap.parse_args()
+
+    if args.orient == "portrait":
+        args.width, args.height = 172, 320
+    elif args.orient == "landscape":
+        args.width, args.height = 320, 172
 
     bg = tuple(int(x) for x in args.bg.split(","))
     os.makedirs(args.out, exist_ok=True)

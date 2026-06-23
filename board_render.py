@@ -169,3 +169,81 @@ def render_ticker(cv, P, text, scroll_px, W, H, ticker_h):
     for k in range(cols):
         buf += text[(first + k) % n]
     cv.text(buf, off, ty + (ticker_h - 8) // 2, P["TFG"])
+
+
+# ---- 横長(320x172)用の静的レイアウト -------------------------------
+def render_static_landscape(cv, P, d, W, H, ticker_h):
+    cv.fill(P["BG"])
+    # ヘッダ(全幅)
+    cv.fill_rect(0, 0, W, 20, P["PANEL"])
+    cv.text(d.get("city", ""), 6, 6, P["FG"])
+    clk = d.get("clock", "")
+    cv.text(clk, W - len(clk) * 8 - 6, 6, P["ACCENT"])
+    cv.hline(0, 20, W, P["LINE"])
+
+    # 左ゾーン: アイコン + 大型気温
+    draw_icon(cv, 56, 82, wmo_kind(d.get("code", 3)), P, 1.1)
+    temp = "%d" % d.get("temp", 0)
+    draw_bignum(cv, 104, 44, temp, 58, P["FG"], deg=True)
+    ctext(cv, 104, 122, wmo_label(d.get("code", 3)), P["ACCENT"])
+
+    # 縦の区切り
+    cv.vline(206, 26, (H - ticker_h) - 30, P["LINE"])
+
+    # 右ゾーン: 本日 / 明日 / 日付
+    rx = 262
+    ctext(cv, rx, 30, "TODAY", P["DIM"])
+    ctext(cv, rx, 44, "H%d  L%d" % (d.get("hi", 0), d.get("lo", 0)), P["FG"])
+    ctext(cv, rx, 72, "TOMORROW", P["DIM"])
+    draw_icon(cv, 234, 104, wmo_kind(d.get("tmr_code", 3)), P, 0.7)
+    cv.text("H%d" % d.get("tmr_hi", 0), 274, 96, P["FG"])
+    cv.text("L%d" % d.get("tmr_lo", 0), 274, 112, P["DIM"])
+    if d.get("date"):
+        ctext(cv, rx, 132, d["date"], P["DIM"])
+
+    # ティッカー背景(全幅)
+    ty = H - ticker_h
+    cv.fill_rect(0, ty, W, ticker_h, P["TBG"])
+    cv.hline(0, ty, W, P["ACCENT"])
+
+
+# ---- 横長(320x172)レイアウト --------------------------------------
+def render_static_land(cv, P, d, W, H, ticker_h):
+    cv.fill(P["BG"])
+    # ヘッダ(全幅)
+    cv.fill_rect(0, 0, W, 20, P["PANEL"])
+    cv.text(d.get("city", ""), 6, 6, P["FG"])
+    clk = d.get("clock", "")
+    cv.text(clk, W - len(clk) * 8 - 6, 6, P["ACCENT"])
+    cv.hline(0, 20, W, P["LINE"])
+
+    # 左: アイコン + 大型気温
+    draw_icon(cv, 54, 78, wmo_kind(d.get("code", 3)), P)
+    temp = "%d" % d.get("temp", 0)
+    th = 46
+    draw_bignum(cv, 104, 50, temp, th, P["FG"], deg=True)
+    ctext(cv, 112, 110, wmo_label(d.get("code", 3)), P["ACCENT"])
+    ctext(cv, 112, 130, "H%d   L%d" % (d.get("hi", 0), d.get("lo", 0)), P["FG"])
+
+    # 縦の区切り
+    ty = H - ticker_h
+    cv.vline(208, 28, ty - 30, P["LINE"])
+
+    # 右: 明日 + 日付
+    ctext(cv, 264, 30, "TOMORROW", P["DIM"])
+    draw_icon(cv, 242, 80, wmo_kind(d.get("tmr_code", 3)), P, 0.8)
+    cv.text("H%d" % d.get("tmr_hi", 0), 282, 70, P["FG"])
+    cv.text("L%d" % d.get("tmr_lo", 0), 282, 88, P["DIM"])
+    if d.get("date"):
+        ctext(cv, 264, 124, d["date"], P["DIM"])
+
+    # ティッカー背景(全幅)
+    cv.fill_rect(0, ty, W, ticker_h, P["TBG"])
+    cv.hline(0, ty, W, P["ACCENT"])
+
+
+def render_board(cv, P, d, W, H, ticker_h, landscape=False):
+    if landscape:
+        render_static_land(cv, P, d, W, H, ticker_h)
+    else:
+        render_static(cv, P, d, W, H, ticker_h)

@@ -1,0 +1,8 @@
+# landscape (320x172) 表示ファイル一覧
+de_test03.raw
+land_welcome.raw
+de_test06.raw
+land_beer.raw
+de_test07.raw
+land_railfes.raw
+land_sale.raw

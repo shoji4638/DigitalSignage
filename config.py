@@ -2,6 +2,7 @@
 # 起動時に /config.json を読み込み、欠けたキーは既定値で補う。
 # wifi は [{ssid,password},...] のリスト、または単一 {ssid,password}、
 # または最上位の ssid/password のどれでも受け付けて (ssid,pw) のリストへ正規化する。
+# display.orientation で縦長/横長を選択。geometry() で回転・サイズ・画像サブフォルダを得る。
 
 import json
 
@@ -16,6 +17,7 @@ _DEFAULTS = {
         "tz": "Asia/Tokyo", "tz_offset": 32400,
     },
     "news_rss": "https://feeds.bbci.co.uk/news/world/rss.xml",
+    "display": {"orientation": "portrait"},
 }
 
 _cache = None
@@ -30,10 +32,25 @@ def _norm_wifi(raw):
                 nets.append((n["ssid"], n.get("password", "")))
     elif isinstance(w, dict) and w.get("ssid"):
         nets.append((w["ssid"], w.get("password", "")))
-    if raw.get("ssid"):                      # 最上位 ssid/password も許容
+    if raw.get("ssid"):
         nets.append((raw["ssid"], raw.get("password", "")))
-    # プレースホルダのまま(YOUR_SSID...)は無効として除外
     return [(s, p) for (s, p) in nets if s and not s.startswith("YOUR_SSID")]
+
+
+def _norm_orient(v):
+    s = str(v).lower()
+    if s.startswith("l") or s in ("\u6a2a", "\u6a2a\u9577"):   # landscape / 横 / 横長
+        return "landscape"
+    return "portrait"
+
+
+def geometry(orientation):
+    """向き -> ドライバ回転・画面サイズ・画像サブフォルダ。"""
+    if _norm_orient(orientation) == "landscape":
+        return {"rotation": 1, "w": 320, "h": 172, "subdir": "landscape",
+                "landscape": True, "ticker_h": 24}
+    return {"rotation": 0, "w": 172, "h": 320, "subdir": "portrait",
+            "landscape": False, "ticker_h": 28}
 
 
 def load(path="/config.json", reload=False):
@@ -49,6 +66,7 @@ def load(path="/config.json", reload=False):
     gh = raw.get("github", {}) or {}
     wx = raw.get("weather", {}) or {}
     dwx = _DEFAULTS["weather"]
+    disp = raw.get("display", {}) or {}
 
     cfg = {
         "wifi": _norm_wifi(raw),
@@ -65,6 +83,7 @@ def load(path="/config.json", reload=False):
             "tz_offset": wx.get("tz_offset", dwx["tz_offset"]),
         },
         "news_rss": raw.get("news_rss", _DEFAULTS["news_rss"]),
+        "orientation": _norm_orient(disp.get("orientation", "portrait")),
     }
     _cache = cfg
     return cfg

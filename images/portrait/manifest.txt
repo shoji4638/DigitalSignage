@@ -2,7 +2,9 @@
 de_test02.raw
 de_test01.raw
 sample_coffee.raw
+de_test04.raw
 sample_railfes.raw
+de_test05.raw
 sample_welcome.raw
 sample_beer.raw
 sample_onsen.raw
